@@ -12,8 +12,10 @@ from langchain.memory import ConversationBufferMemory
 from langchain.llms import HuggingFaceHub
 
 
-default_persist_directory = './chroma_HF/'
+VECTOR_DIR = './chroma_HF/'
 MODEL_NAME = "mistralai/Mistral-7B-Instruct-v0.2"
+CHUNK_SIZE = 600
+CHUNK_OVERLAP = 40
 
 # Load PDF document and create doc splits
 def load_doc(list_file_path, chunk_size, chunk_overlap):
@@ -43,7 +45,7 @@ def create_db(splits):
 def load_db():
     embedding = HuggingFaceEmbeddings()
     vectordb = Chroma(
-        persist_directory=default_persist_directory, 
+        persist_directory=VECTOR_DIR, 
         embedding_function=embedding,
     )
     return vectordb
@@ -159,13 +161,6 @@ def demo():
             with gr.Row():
                 document = gr.Files(height=100, file_count="multiple", file_types=["pdf"], interactive=True, label="Upload your PDF documents (single or multiple)")
             with gr.Row():
-                db_btn = gr.Radio(["ChromaDB"], label="Vector database type", value = "ChromaDB", type="index", info="Choose your vector database")
-            with gr.Accordion("Advanced options - Document text splitter", open=False):
-                with gr.Row():
-                    slider_chunk_size = gr.Slider(minimum = 100, maximum = 1000, value=600, step=20, label="Chunk size", info="Chunk size", interactive=True)
-                with gr.Row():
-                    slider_chunk_overlap = gr.Slider(minimum = 10, maximum = 200, value=40, step=10, label="Chunk overlap", info="Chunk overlap", interactive=True)
-            with gr.Row():
                 db_progress = gr.Textbox(label="Vector database initialization", value="None")
             with gr.Row():
                 db_btn = gr.Button("Generating vector database...")
@@ -198,7 +193,7 @@ def demo():
         # Preprocessing events
         #upload_btn.upload(upload_file, inputs=[upload_btn], outputs=[document])
         db_btn.click(initialize_database, \
-            inputs=[document, slider_chunk_size, slider_chunk_overlap], \
+            inputs=[document, CHUNK_SIZE, CHUNK_OVERLAP], \
             outputs=[vector_db, db_progress])
         qachain_btn.click(initialize_LLM, \
             inputs=[slider_temperature, slider_maxtokens, slider_topk, vector_db], \

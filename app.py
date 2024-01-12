@@ -18,15 +18,16 @@ CHUNK_SIZE = 600
 CHUNK_OVERLAP = 40
 
 # Load PDF document and create doc splits
-def load_doc(list_file_path, chunk_size, chunk_overlap):
+def load_doc(list_file_path):
     loaders = [PyPDFLoader(x) for x in list_file_path]
     pages = []
     for loader in loaders:
         pages.extend(loader.load())
 
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size = chunk_size, 
-        chunk_overlap = chunk_overlap)
+        chunk_size = CHUNK_SIZE, 
+        chunk_overlap = CHUNK_OVERLAP
+    )
     doc_splits = text_splitter.split_documents(pages)
     return doc_splits
 
@@ -84,14 +85,13 @@ def initialize_llmchain(temperature, max_tokens, top_k, vector_db, progress=gr.P
 
 
 # Initialize database
-def initialize_database(list_file_obj, chunk_size, chunk_overlap, progress=gr.Progress()):
+def initialize_database(list_file_obj, progress=gr.Progress()):
     # Create list of documents (when valid)
-    #file_path = file_obj.name
     list_file_path = [x.name for x in list_file_obj if x is not None]
     # print('list_file_path', list_file_path)
     progress(0.25, desc="Loading document...")
     # Load document and create splits
-    doc_splits = load_doc(list_file_path, chunk_size, chunk_overlap)
+    doc_splits = load_doc(list_file_path)
     # Create or load Vector database
     progress(0.5, desc="Generating vector database...")
     # global vector_db
@@ -139,8 +139,6 @@ def upload_file(file_obj):
     for idx, file in enumerate(file_obj):
         file_path = file_obj.name
         list_file_path.append(file_path)
-    # print(file_path)
-    # initialize_database(file_path, progress)
     return list_file_path
 
 
@@ -191,9 +189,8 @@ def demo():
                 clear_btn = gr.ClearButton([msg, chatbot])
             
         # Preprocessing events
-        #upload_btn.upload(upload_file, inputs=[upload_btn], outputs=[document])
         db_btn.click(initialize_database, \
-            inputs=[document, CHUNK_SIZE, CHUNK_OVERLAP], \
+            inputs=[document], \
             outputs=[vector_db, db_progress])
         qachain_btn.click(initialize_LLM, \
             inputs=[slider_temperature, slider_maxtokens, slider_topk, vector_db], \

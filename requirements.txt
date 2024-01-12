@@ -1,0 +1,6 @@
+transformers
+sentence-transformers
+langchain
+tqdm
+pypdf
+chromadb

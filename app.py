@@ -101,7 +101,7 @@ def initialize_database(list_file_obj, progress=gr.Progress()):
 
 
 def initialize_LLM(llm_temperature, max_tokens, top_k, vector_db, progress=gr.Progress()):
-    qa_chain = initialize_llmchain(llm_name, llm_temperature, max_tokens, top_k, vector_db, progress)
+    qa_chain = initialize_llmchain(llm_temperature, max_tokens, top_k, vector_db, progress)
     return qa_chain, "Complete!"
 
 
